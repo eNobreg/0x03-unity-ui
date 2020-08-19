@@ -15,7 +15,15 @@ public class PlayerController : MonoBehaviour
     private int score = 0;
     public int health = 5;
     public Text scoreText;
+	public Text healthText;
+	public Image resultImage;
+	public Text resultText;
     public HealthBar healthBar;
+
+	void SetHealthText()
+	{
+		healthText.text = "Health: " + health.ToString();
+	}
     
     void SetScoreText()
     {
@@ -25,7 +33,7 @@ public class PlayerController : MonoBehaviour
     {
         health = 5;
         rb = GetComponent<Rigidbody>();
-        setText();
+        SetScoreText();
         healthBar.SetMaxHealth(health);
         
     }
@@ -34,12 +42,19 @@ public class PlayerController : MonoBehaviour
     {
         moveHorizontal = Input.GetAxis ("Horizontal");
         moveVertical = Input.GetAxis("Vertical");
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			SceneManager.LoadScene("menu");
+		}
         if (health == 0)
         {
-            Debug.Log("Game Over!");
+			resultImage.gameObject.SetActive(true);
+			resultImage.color = Color.red;
+			resultText.color = Color.white;
+			resultText.text = "Game Over!";
             health = 5;
             score = 0;
-            SceneManager.LoadScene("maze");
+			StartCoroutine(LoadScene(3));
         }
     }
 
@@ -64,19 +79,27 @@ public class PlayerController : MonoBehaviour
         if (other.gameObject.CompareTag("Trap"))
         {
             health -= 1;
+			SetHealthText();
             healthBar.SetHealth(health);
-            Debug.Log($"Health: {health}");
         }
         if (other.gameObject.CompareTag("Goal"))
         {
-            Debug.Log("You win!");
+            resultImage.gameObject.SetActive(true);
+			resultImage.color = Color.green;
+			resultText.color = Color.black;
+			resultText.text = "You Win!";
+			StartCoroutine(LoadScene(2));
         }
         if (other.gameObject.CompareTag("Boost"))
         {
             Vector3 move = new Vector3 (moveHorizontal, 80.0f, moveVertical);
             rb.AddForce(move * speed);
         }
-
-
     }
+
+	IEnumerator LoadScene(float seconds)
+	{
+		yield return new WaitForSeconds(seconds);
+		SceneManager.LoadScene("maze");
+	}
 }
